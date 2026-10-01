@@ -1,0 +1,13 @@
+# 로컬 개발용 비밀값. 이 파일을 .dev.vars 로 복사해 값을 채운다. (.dev.vars 는 git에 올리지 않는다)
+
+# 공공데이터포털 > 조달청_나라장터 입찰공고정보서비스 활용신청 후 받은 일반 인증키(Decoding)
+G2B_SERVICE_KEY=
+
+# Anthropic Console 에서 발급한 API 키. 비워 두면 규칙 기반 초안으로 동작한다.
+ANTHROPIC_API_KEY=
+
+# (선택) 공개 배포 시 AI 분석 호출에 요구할 접근 코드
+ACCESS_CODE=
+
+# (선택) Cloudflare AI Gateway 같은 프록시를 거칠 때만 설정한다.
+# ANTHROPIC_BASE_URL=

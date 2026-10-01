@@ -1,0 +1,11 @@
+# 조직 내부 실적 자료는 올리지 않는다
+*.xlsx
+*.xls
+private/
+
+node_modules/
+.wrangler/
+.dev.vars
+.env
+*.log
+.DS_Store

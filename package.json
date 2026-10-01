@@ -1,0 +1,22 @@
+{
+  "name": "rfp-radar",
+  "version": "0.1.0",
+  "private": true,
+  "description": "나라장터 용역 공고를 수집해 공공 컨설팅 적합도를 점수화하고 AI가 제안 착수 메모를 작성하는 입찰 레이더",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "test": "node --test",
+    "deploy": "wrangler pages deploy"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.129.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.145.0"
+  }
+}

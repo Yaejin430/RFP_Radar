@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RFP Radar</title>
+  <meta name="description" content="나라장터 용역 공고를 수집해 공공 컨설팅 적합도를 점수화하고, AI가 입찰 참여 판단과 제안 착수 메모를 작성하는 입찰 레이더" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%230b1628'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%2334d1bf' stroke-width='1.5'/%3E%3Cpath d='M16 16 L27 9' stroke='%2334d1bf' stroke-width='2'/%3E%3Ccircle cx='21' cy='12' r='2.5' fill='%23ffb547'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="14" fill="#0b1628" />
+        <circle cx="16" cy="16" r="9" fill="none" stroke="#34d1bf" stroke-width="1.5" />
+        <circle cx="16" cy="16" r="4" fill="none" stroke="#34d1bf" stroke-width="1" opacity=".6" />
+        <path d="M16 16 L27 9" stroke="#34d1bf" stroke-width="2" stroke-linecap="round" />
+        <circle cx="21" cy="12" r="2.5" fill="#ffb547" />
+      </svg>
+      <div>
+        <strong>RFP Radar</strong>
+        <span>나라장터 공공 컨설팅 입찰 레이더</span>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="화면 전환">
+      <button role="tab" data-tab="radar" aria-selected="true">레이더</button>
+      <button role="tab" data-tab="pipeline" aria-selected="false">파이프라인 <span id="pipeline-count" class="pill"></span></button>
+      <button role="tab" data-tab="settings" aria-selected="false">역량 프로필</button>
+    </nav>
+    <button id="theme-toggle" class="icon-btn" type="button" aria-label="화면 테마 전환" title="화면 테마 전환">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z" fill="currentColor" /></svg>
+    </button>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main>
+    <!-- 레이더 -->
+    <section id="tab-radar" class="tab-panel" role="tabpanel">
+      <div class="toolbar">
+        <label class="field">
+          <span>조회 기간</span>
+          <select id="days">
+            <option value="3">최근 3일</option>
+            <option value="7" selected>최근 7일</option>
+            <option value="14">최근 14일</option>
+          </select>
+        </label>
+        <label class="field grow">
+          <span>공고명·기관 검색</span>
+          <input id="search" type="search" placeholder="예: 부지, 리츠, 국토교통부" autocomplete="off" />
+        </label>
+        <label class="switch">
+          <input id="show-excluded" type="checkbox" />
+          <span>제외 공고 표시</span>
+        </label>
+        <div class="toolbar-actions">
+          <button id="refresh" class="btn" type="button">새로 수집</button>
+          <button id="brief" class="btn primary" type="button">주간 브리핑</button>
+        </div>
+      </div>
+
+      <div id="kpis" class="kpis" aria-live="polite"></div>
+
+      <div class="radar-layout">
+        <div class="card radar-card">
+          <div class="card-head">
+            <div>
+              <h2>기회 레이더</h2>
+              <p>적합도 60점 이상 상위 공고를 표시합니다. 중심에 가까울수록 적합도가 높고, 점이 클수록 사업 규모가 큽니다. 점을 누르면 상세 분석이 열립니다.</p>
+            </div>
+          </div>
+          <div id="radar" class="radar"></div>
+          <div id="radar-legend" class="legend"></div>
+        </div>
+        <div class="side">
+          <div class="card">
+            <div class="card-head"><h2>마감 임박 적합 공고</h2></div>
+            <ol id="deadlines" class="deadlines"></ol>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>분야별 기회</h2></div>
+            <div id="practice-bars" class="bars"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>우선순위 목록</h2>
+          <span id="list-count" class="muted"></span>
+        </div>
+        <div id="grade-chips" class="chips" role="group" aria-label="등급 필터"></div>
+        <div id="bid-list" class="bid-list"></div>
+      </div>
+    </section>
+
+    <!-- 파이프라인 -->
+    <section id="tab-pipeline" class="tab-panel" role="tabpanel" hidden>
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h2>제안 파이프라인</h2>
+            <p>관심 공고를 단계별로 관리합니다. 카드를 끌어 다른 단계로 옮길 수 있습니다. 기록은 이 브라우저에만 저장됩니다.</p>
+          </div>
+          <button id="export-csv" class="btn" type="button">CSV 내보내기</button>
+        </div>
+        <div id="board" class="board"></div>
+      </div>
+    </section>
+
+    <!-- 역량 프로필 -->
+    <section id="tab-settings" class="tab-panel" role="tabpanel" hidden>
+      <div class="card team-card">
+        <div class="card-head">
+          <div>
+            <h2>팀 수행 실적</h2>
+            <p>실적을 불러오면 평가 기준이 팀의 실제 수주 이력에 맞게 자동으로 조정됩니다.</p>
+          </div>
+          <div class="d-actions">
+            <button id="team-clear" class="btn" type="button" hidden>실적 해제</button>
+            <button id="team-pick" class="btn primary" type="button">실적 파일 불러오기</button>
+            <input id="team-file" type="file" accept=".xlsx,.xls,.csv,.json" hidden />
+          </div>
+        </div>
+        <div id="team-body"></div>
+      </div>
+
+      <form id="profile-form" class="card settings">
+        <div class="card-head">
+          <div>
+            <h2>역량 프로필</h2>
+            <p>적합도 점수는 이 프로필로 계산합니다. 키워드는 쉼표로 구분합니다. 설정은 이 브라우저에만 저장됩니다.</p>
+          </div>
+        </div>
+        <div id="profile-fields"></div>
+        <div class="form-actions">
+          <button type="button" id="reset-profile" class="btn">기본값 복원</button>
+          <button type="submit" class="btn primary">저장하고 다시 계산</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- 상세 서랍 -->
+  <div id="drawer" class="drawer" hidden>
+    <div class="drawer-scrim" data-close></div>
+    <aside class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <button class="icon-btn drawer-close" type="button" data-close aria-label="닫기">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+      </button>
+      <div id="drawer-body"></div>
+    </aside>
+  </div>
+
+  <dialog id="brief-dialog" class="modal">
+    <form method="dialog" class="modal-inner">
+      <h2>주간 입찰 브리핑</h2>
+      <p class="muted">팀 메신저나 메일에 바로 붙여 넣을 수 있는 형식입니다.</p>
+      <textarea id="brief-text" rows="18" readonly></textarea>
+      <div class="form-actions">
+        <button id="brief-copy" type="button" class="btn primary">복사</button>
+        <button value="close" class="btn">닫기</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    데이터 출처: 조달청 나라장터 입찰공고정보서비스(공공데이터포털 Open API). 개인 프로젝트이며 조달청·발주기관과 관련이 없습니다.
+    적합도 점수와 AI 분석은 검토용 초안이므로 입찰 판단 전에 제안요청서 원문을 확인해야 합니다.
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
